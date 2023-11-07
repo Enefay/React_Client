@@ -6,6 +6,7 @@ const Dashboard = lazy(() => import('../pages/protected/Dashboard'))
 const Page404 = lazy(() => import('../pages/protected/404'))
 const Blank = lazy(() => import('../pages/protected/Blank'))
 const Leads = lazy(() => import('../pages/protected/Leads'))
+const LeadsDetail = lazy(() => import('../pages/protected/LeadsDetail'))
 const Integration = lazy(() => import('../pages/protected/Integration'))
 const Calendar = lazy(() => import('../pages/protected/Calendar'))
 const Team = lazy(() => import('../pages/protected/Team'))
@@ -18,6 +19,10 @@ const routes = [
   {
     path: '/dashboard', // the url
     component: Dashboard, // view rendered
+  },
+  {
+    path: '/demand-detail/:id',
+    component: LeadsDetail,
   },
   {
     path: '/leads',
