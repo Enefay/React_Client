@@ -17,14 +17,15 @@ import { useNavigate } from "react-router-dom";
 const TopSideButtons = () => {
 
     const dispatch = useDispatch()
-
+    const navigate = useNavigate();
     const openAddNewLeadModal = () => {
         dispatch(openModal({ title: "Talep Ekle", bodyType: MODAL_BODY_TYPES.LEAD_ADD_NEW }))
     }
 
     return (
-        <div className="inline-block float-right">
-            <button className="btn px-6 btn-sm normal-case btn-primary" onClick={() => openAddNewLeadModal()}>Talep Ekle</button>
+        <div className="inline-block float-right"> 
+            <button className="btn px-6 btn-sm normal-case btn-primary" onClick={() => openAddNewLeadModal()}>POPUP</button>
+            <button className="btn px-6 btn-sm normal-case btn-primary" onClick={() => navigate(`/app/leadscreate`)}>Talep Ekle</button>
         </div>
     )
 }
@@ -71,9 +72,9 @@ function Leads() {
     const getDummyStatus = (index) => {
         //talep durumları taslak / yönetici onay/ satın alma/ teklif
         if (index % 4 === 0) return <div className="badge">Taslak</div> 
-        else if (index % 4 === 1) return <div className="badge badge-success">Yönetici Onayı</div>
-        else if (index % 4 === 2) return <div className="badge badge-secondary">Teklif</div>
-        else if (index % 4 === 3) return <div className="badge badge-accent">Satın Alma</div>
+        else if (index % 4 === 1) return <div className="badge badge-success">Yönetici Onayı Bekleniyor</div>
+        else if (index % 4 === 2) return <div className="badge badge-secondary">Teklif Aşaması</div>
+        else if (index % 4 === 3) return <div className="badge badge-accent">Satın Alma Bekleniyor</div>
         else return <div className="badge badge-ghost">Taslak</div>
     }
 
@@ -111,14 +112,14 @@ function Leads() {
                                 demands.map(function fn(item){
                                     return (
                                         <tr key={item}>
-                                        <td >{item.id}</td>
-                                        <td>{item.code}</td>
-                                        <td>{item.name}</td>
-                                        <td>{getDummyStatus(item.status)}</td>
-                                        <td>{item.manager?.userName}</td>
-                                        <td>{item.managerApproveDate}</td>
-                                        <td>{item.purchasingResponsible?.userName}</td>
-                                        <td>{item.purchasingApproveDate}</td>
+                                        <td >{item.id || "-" }</td>
+                                        <td>{item.code || "-" }</td>
+                                        <td>{item.name || "-" }</td>
+                                        <td>{getDummyStatus(item.status) || "-" }</td>
+                                        <td>{item.manager?.userName || "-" }</td>
+                                        <td>{item.managerApproveDate || "-" }</td>
+                                        <td>{item.purchasingResponsible?.userName || "-" }</td>
+                                        <td>{item.purchasingApproveDate  || "-" }   </td>
                                         <td><button className="btn btn-square btn-warning" onClick={() => navigate(`/app/demand-detail/${item.id}`)}><PencilSquareIcon className="w-5" /></button></td>
                                         <td><button className="btn btn-square bg-red-700 " onClick={() => deleteCurrentLead(item)}><TrashIcon className="w-5" /></button></td>
                                         </tr>

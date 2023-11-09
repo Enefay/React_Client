@@ -1,17 +1,16 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import TitleCard from '../../components/Cards/TitleCard';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
+import { Link } from 'react-router-dom';
 
 
-function LeadsDetail() {
-    const { id } = useParams();
-    const [leadData, setLeadData] = useState(null); //vtden gelen veri
-
-
+function LeadsCreate() {
+    const [leadData, setLeadData] = useState({
+        details: []
+    });
 
     //apiden malzeme listeleme islemleri....start
     const [meterials, setMeterials] = useState([]);
@@ -32,21 +31,85 @@ function LeadsDetail() {
 
 
     //apiden malzeme listeleme islemleri....end
+    const [fullData, setFullData] = useState([]);
 
 
+    const [newDemands, setNewDemands] = useState({
+        code: '',
+        createdDate: '',
+        costCenter: '',
+        demandDescription: '',
+        demandNote: '',
+        placeOfUse: '',
+        projectCode: '',
+        status: '',
+        type: '',
+        reasonForDemand: '',
+        material: '',
+        quantity: '',
+        unit: '',
+        demandProcurementDate: '',
+        description: '',
+    });
+
+    // Yeni talep eklemek için işlev
+    const addDemand = () => {
+        const newDemand = {
+            code: newDemands.code,
+            createdDate: null,
+            costCenter: newDemands.costCenter,
+            demandDescription: newDemands.demandDescription,
+            demandNote: newDemands.demandNote,
+            placeOfUse: newDemands.placeOfUse,
+            projectCode: newDemands.projectCode,
+            status: 0, 
+            type: 0,
+            reasonForDemand: newDemands.reasonForDemand,
+            details: leadData.details,
+        };
 
 
-    useEffect(() => {
-        axios.get(`https://localhost:7054/api/Demand/GetById?id=${id}`)
-            .then(response => {
-                setLeadData(response.data);
+        const updatedDetails = [...fullData, newDemand];
+        
+        setFullData(updatedDetails); 
+     
+        setNewDemands({
+            code: '',
+            createdDate: '',
+            costCenter: '',
+            demandDescription: '',
+            demandNote: '',
+            placeOfUse: '',
+            projectCode: '',
+            status: '',
+            type: '',
+            reasonForDemand: '',
+            material: '',
+            quantity: '',
+            unit: '',
+            demandProcurementDate: '',
+            description: '',
+        });
+        
+        //VTKAYDETMEISLEMLERİ
+        const updatedData = capitalizeKeysRecursively(updatedDetails[0]);
+        // POST İŞLEMİ
+        axios.post("https://localhost:7054/api/Demand/Insert", updatedData)
+            .then((response) => {
+                console.log("Yanıt:", response.data);
+                setFullData([])
             })
-            .catch(error => {
-                console.error(error);
+            .catch((error) => {
+                if (error.response) {
+                    console.error("Hata Yanıt Verisi:", error.response.data);
+                    console.error("Hata Durum Kodu:", error.response.status);
+                } else {
+                    console.error("Hata Mesajı:", error.message);
+                }
             });
 
-    }, [id]);
-
+            
+    };
 
 
 
@@ -59,45 +122,58 @@ function LeadsDetail() {
         demandProcurementDate: '',
         description: '',
     });
-
     const addMaterial = () => {
         if (
             newMaterials.material &&
             newMaterials.quantity &&
-            newMaterials.unit &&
+            newMaterials.unit 
+            &&
             newMaterials.demandProcurementDate
         ) {
-            const newMaterial = {
-                meterial: {
-                    name: newMaterials.material,
-                },
-                quantity: newMaterials.quantity,
-                unit: newMaterials.unit,
-                demandProcurementDate: newMaterials.demandProcurementDate,
-                description: newMaterials.description,
-            };
+            const selectedMaterial = meterials.find(item => item.text === newMaterials.material);
+            
+            if (selectedMaterial) {
+                const newMaterial = {
+                    demand:{
+                        id:10
+                    },
+                    meterial:{
+                        id:selectedMaterial.id,
+                        name: newMaterials.material,
+                    },
+                    currency:{
+                        id:1
+                    },
+                    quantity: newMaterials.quantity,
+                    unitPrice:2, //asd
+                    unit: newMaterials.unit,
+                    demandProcurementDate: newMaterials.demandProcurementDate,
+                    description: newMaterials.description,
+                };
 
-            const updatedDetails = [
-                ...leadData.details,
-                newMaterial,
-            ];
-            setLeadData({
-                ...leadData,
-                details: updatedDetails,
-
-            });
-            setNewMaterials({
-                material: '',
-                quantity: '',
-                unit: '',
-                demandProcurementDate: '',
-                description: '',
-            });
-        }
-        else {
-            alert("Gerekli bilgileri girin...");
+                const updatedDetails = [
+                    ...leadData.details,
+                    newMaterial,
+                ];
+                setLeadData({
+                    ...leadData,
+                    details: updatedDetails,
+                });
+                setNewMaterials({
+                    material: '',
+                    quantity: '',
+                    unit: '',
+                    demandProcurementDate: '',
+                    description: '',
+                });
+            } else {
+                alert("Selected material not found in the list.");
+            }
+        } else {
+            alert("Please fill in all the required information.");
         }
     };
+    
 
     // Malzeme Ekleme VTSİZ END
 
@@ -113,27 +189,32 @@ function LeadsDetail() {
         });
     };
     //MALZEME SİLME VTSİZ END
-
-
-
-
-    if (!leadData) {
-        return <p>Yükleniyor...</p>;
-    }
-
-
-
+    
+    //ilk harf büyütme 
+    function capitalizeKeysRecursively(obj) {
+        if (typeof obj !== 'object' || obj === null) {
+          return obj;
+        }
+      
+        if (Array.isArray(obj)) {
+          return obj.map((item) => capitalizeKeysRecursively(item));
+        }
+      
+        const result = {};
+        for (const key in obj) {
+          if (obj.hasOwnProperty(key)) {
+            const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+            result[capitalizedKey] = capitalizeKeysRecursively(obj[key]);
+          }
+        }
+        return result;
+      }
+      
     return (
 
-        <TitleCard title="Talep Formu Düzenleme" topMargin="mt-2">
+        <TitleCard title="Talep Formu Oluştur" topMargin="mt-2">
             <div className="p-4">
                 <div className="mt-4">
-                    <div className="flex items-center">
-                        <p className="text-gray-500">Talep No: {leadData.code}</p>
-                        <p className="text-gray-500 ml-auto">Talep Oluşturulma Tarihi: {new Date(leadData.createdDate).toLocaleString()}</p>
-
-                    </div>
-
                     <div className="mt-4 grid grid-cols-2 gap-4">
                         <div>
                             <p>Departman:</p>
@@ -141,45 +222,37 @@ function LeadsDetail() {
                         </div>
                         <div>
                             <p>Talep Nedeni:</p>
-                            <input type="text" className="w-full border rounded p-2" defaultValue={leadData.reasonForDemand} />
+                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, reasonForDemand: e.target.value })} />
                         </div>
                         <div>
                             <p>Kullanım Yeri:</p>
-                            <input type="text" className="w-full border rounded p-2" defaultValue={leadData.placeOfUse} />
+                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, placeOfUse: e.target.value })} />
                         </div>
                         <div>
                             <p>Masraf Merkezi:</p>
-                            <input type="text" className="w-full border rounded p-2" defaultValue={leadData.costCenter} />
+                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, costCenter: e.target.value })} />
                         </div>
                         <div>
                             <p>Proje Kodu:</p>
-                            <input type="text" className="w-full border rounded p-2" defaultValue={leadData.projectCode} />
+                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, projectCode: e.target.value })} />
                         </div>
                         <div>
                             <p>Talep Durumu:</p>
                             <label className="w-2/4 mr-5 ">
-                                <input type="radio" name="talepDurumu" value="acil" className="border rounded mt-3"
-                                    checked={leadData.type === 1}
-                                    onChange={() => {
-                                        setLeadData({ ...leadData, type: 1 });
-                                    }}
-                                /> Acil
+                                <input type="radio" name="talepDurumu" value="acil" className="border rounded mt-3" /> Acil
                             </label>
                             <label className="w-2/4 mx-5">
-                                <input type="radio" name="talepDurumu" value="normal" className=" border rounded mt-3" 
-                                checked={leadData.type === 0} 
-                                onChange={() => {
-                                    setLeadData({ ...leadData, type: 0 }); 
-                                }} /> Normal
+                                <input type="radio" name="talepDurumu" value="normal" className=" border rounded mt-3"
+                                /> Normal
                             </label>
                         </div>
                         <div>
                             <p>Açıklama:</p>
-                            <textarea className="w-full border rounded p-2" defaultValue={leadData.demandDescription}></textarea>
+                            <textarea className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, demandDescription: e.target.value })}></textarea>
                         </div>
                         <div>
                             <p>Not:</p>
-                            <textarea className="w-full border rounded p-2" defaultValue={leadData.demandNote}></textarea>
+                            <textarea className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, demandNote: e.target.value })}></textarea>
                         </div>
                     </div>
                 </div>
@@ -231,7 +304,7 @@ function LeadsDetail() {
                                 onChange={(e) => setNewMaterials({ ...newMaterials, unit: e.target.value })}
                             />
                         </div>
-                        <div>
+                         <div>
                             <p>Talep Edilen Temin Tarihi:</p>
                             <input
                                 type="datetime-local"
@@ -241,7 +314,7 @@ function LeadsDetail() {
                                     setNewMaterials({ ...newMaterials, demandProcurementDate: e.target.value })
                                 }
                             />
-                        </div>
+                        </div> 
                         <div>
                             <p>Açıklama / Ürün Kodu:</p>
                             <textarea
@@ -296,17 +369,21 @@ function LeadsDetail() {
 
                     </table>
                 </div>
-                <div className="flex justify-center">
-                    <button
-                        className="bg-green-600 text-white w-1/3 border rounded p-2 ml-2 mt-5"
-                    // onClick={}
+                <div className="flex justify-center bg-green-600 text-white w-1/3 border rounded p-2 ml-2 mt-5">
+                <Link to="/app/leads" >
+                <button
+                  
+                        onClick={addDemand}
                     >
-                        Güncelle
+                        Ekle
                     </button>
+                </Link>
+         
                 </div>
+
             </div>
         </TitleCard>
     );
 }
 
-export default LeadsDetail;
+export default LeadsCreate;

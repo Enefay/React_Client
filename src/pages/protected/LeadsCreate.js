@@ -1,21 +1,23 @@
 import { useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { setPageTitle } from '../../features/common/headerSlice'
+import LeadsCreate from '../../features/leadscreate'
 
-import DocumentIcon  from '@heroicons/react/24/solid/DocumentIcon'
-import Deneme from '../../features/deneme'
+
 
 function InternalPage(){
-
     const dispatch = useDispatch()
 
     useEffect(() => {
-        dispatch(setPageTitle({ title : "Page Title"}))
+        dispatch(setPageTitle({ title : "Talep Oluştur"}))
       }, [])
-      
-    return(
-        <Deneme />
 
+
+    return(
+        <>
+         <LeadsCreate />  
+        </>
+        
     )
 }
 
