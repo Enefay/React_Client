@@ -372,7 +372,7 @@ function LeadsCreate() {
                 <div className="flex justify-center bg-green-600 text-white w-1/3 border rounded p-2 ml-2 mt-5">
                 <Link to="/app/leads" >
                 <button
-                  
+                //   asd
                         onClick={addDemand}
                     >
                         Ekle
