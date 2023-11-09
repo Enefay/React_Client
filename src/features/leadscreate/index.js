@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useState } from 'react';
 import TitleCard from '../../components/Cards/TitleCard';
 import TrashIcon from '@heroicons/react/24/outline/TrashIcon';
-import { Link } from 'react-router-dom';
+
 
 
 function LeadsCreate() {
@@ -31,12 +31,17 @@ function LeadsCreate() {
 
 
     //apiden malzeme listeleme islemleri....end
+
+
+
+
+
+
+
     const [fullData, setFullData] = useState([]);
 
-
+    const [type, setType] = useState(0);
     const [newDemands, setNewDemands] = useState({
-        code: '',
-        createdDate: '',
         costCenter: '',
         demandDescription: '',
         demandNote: '',
@@ -45,73 +50,71 @@ function LeadsCreate() {
         status: '',
         type: '',
         reasonForDemand: '',
-        material: '',
-        quantity: '',
-        unit: '',
-        demandProcurementDate: '',
-        description: '',
+        details: '',
     });
 
     // Yeni talep eklemek için işlev
     const addDemand = () => {
-        const newDemand = {
-            code: newDemands.code,
-            createdDate: null,
-            costCenter: newDemands.costCenter,
-            demandDescription: newDemands.demandDescription,
-            demandNote: newDemands.demandNote,
-            placeOfUse: newDemands.placeOfUse,
-            projectCode: newDemands.projectCode,
-            status: 0, 
-            type: 0,
-            reasonForDemand: newDemands.reasonForDemand,
-            details: leadData.details,
-        };
 
+        if (newDemands.costCenter &&
+            newDemands.placeOfUse &&
+            newDemands.projectCode &&
+            newDemands.reasonForDemand 
+        ) {
+            const newDemand = {
+                costCenter: newDemands.costCenter,
+                demandDescription: newDemands.demandDescription,
+                demandNote: newDemands.demandNote,
+                placeOfUse: newDemands.placeOfUse,
+                projectCode: newDemands.projectCode,
+                status: 0,
+                type: type,
+                reasonForDemand: newDemands.reasonForDemand,
+                details: leadData.details,
+            };
 
-        const updatedDetails = [...fullData, newDemand];
-        
-        setFullData(updatedDetails); 
-     
-        setNewDemands({
-            code: '',
-            createdDate: '',
-            costCenter: '',
-            demandDescription: '',
-            demandNote: '',
-            placeOfUse: '',
-            projectCode: '',
-            status: '',
-            type: '',
-            reasonForDemand: '',
-            material: '',
-            quantity: '',
-            unit: '',
-            demandProcurementDate: '',
-            description: '',
-        });
-        
-        //VTKAYDETMEISLEMLERİ
-        const updatedData = capitalizeKeysRecursively(updatedDetails[0]);
-        // POST İŞLEMİ
-        axios.post("https://localhost:7054/api/Demand/Insert", updatedData)
-            .then((response) => {
-                console.log("Yanıt:", response.data);
-                setFullData([])
-            })
-            .catch((error) => {
-                if (error.response) {
-                    console.error("Hata Yanıt Verisi:", error.response.data);
-                    console.error("Hata Durum Kodu:", error.response.status);
-                } else {
-                    console.error("Hata Mesajı:", error.message);
-                }
-            });
+            if (newDemand.details.length !== 0) {
+                const updatedDetails = [...fullData, newDemand];
 
-            
+                setFullData(updatedDetails);
+                setNewDemands(
+                    {
+                        costCenter: '',
+                        demandDescription: '',
+                        demandNote: '',
+                        placeOfUse: '',
+                        projectCode: '',
+                        // type: '',
+                        reasonForDemand: '',
+                    }
+                )
+                setLeadData({
+                    details: []
+                })
+                //VTKAYDETMEISLEMLERİ
+                const updatedData = capitalizeKeysRecursively(updatedDetails[0]);
+                // POST İŞLEMİ
+                axios.post("https://localhost:7054/api/Demand/Insert", updatedData)
+                    .then((response) => {
+                        console.log("Yanıt:", response.data);
+                        setFullData([]);
+
+                    })
+                    .catch((error) => {
+                        if (error.response) {
+                            console.error("Hata Yanıt Verisi:", error.response.data);
+                            console.error("Hata Durum Kodu:", error.response.status);
+                        } else {
+                            console.error("Hata Mesajı:", error.message);
+                        }
+                    });
+            } else {
+                alert("Malzeme Ekleyin....")
+            }
+        } else {
+            alert("Talepteki boş yerleri doldurun....")
+        }
     };
-
-
 
 
     // Malzeme Ekleme VTSİZ START
@@ -126,26 +129,26 @@ function LeadsCreate() {
         if (
             newMaterials.material &&
             newMaterials.quantity &&
-            newMaterials.unit 
+            newMaterials.unit
             &&
             newMaterials.demandProcurementDate
         ) {
             const selectedMaterial = meterials.find(item => item.text === newMaterials.material);
-            
+
             if (selectedMaterial) {
                 const newMaterial = {
-                    demand:{
-                        id:10
+                    demand: {
+                        id: 10
                     },
-                    meterial:{
-                        id:selectedMaterial.id,
+                    meterial: {
+                        id: selectedMaterial.id,
                         name: newMaterials.material,
                     },
-                    currency:{
-                        id:1
+                    currency: {
+                        id: 1
                     },
                     quantity: newMaterials.quantity,
-                    unitPrice:2, //asd
+                    unitPrice: 2, //asd
                     unit: newMaterials.unit,
                     demandProcurementDate: newMaterials.demandProcurementDate,
                     description: newMaterials.description,
@@ -167,13 +170,13 @@ function LeadsCreate() {
                     description: '',
                 });
             } else {
-                alert("Selected material not found in the list.");
+                alert("Seçilen materyal listede bulunamadı.");
             }
         } else {
-            alert("Please fill in all the required information.");
+            alert("Lütfen gerekli tüm bilgileri doldurun.");
         }
     };
-    
+
 
     // Malzeme Ekleme VTSİZ END
 
@@ -189,29 +192,28 @@ function LeadsCreate() {
         });
     };
     //MALZEME SİLME VTSİZ END
-    
+
     //ilk harf büyütme 
     function capitalizeKeysRecursively(obj) {
         if (typeof obj !== 'object' || obj === null) {
-          return obj;
+            return obj;
         }
-      
+
         if (Array.isArray(obj)) {
-          return obj.map((item) => capitalizeKeysRecursively(item));
+            return obj.map((item) => capitalizeKeysRecursively(item));
         }
-      
+
         const result = {};
         for (const key in obj) {
-          if (obj.hasOwnProperty(key)) {
-            const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
-            result[capitalizedKey] = capitalizeKeysRecursively(obj[key]);
-          }
+            if (obj.hasOwnProperty(key)) {
+                const capitalizedKey = key.charAt(0).toUpperCase() + key.slice(1);
+                result[capitalizedKey] = capitalizeKeysRecursively(obj[key]);
+            }
         }
         return result;
-      }
-      
-    return (
+    }
 
+    return (
         <TitleCard title="Talep Formu Oluştur" topMargin="mt-2">
             <div className="p-4">
                 <div className="mt-4">
@@ -222,37 +224,53 @@ function LeadsCreate() {
                         </div>
                         <div>
                             <p>Talep Nedeni:</p>
-                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, reasonForDemand: e.target.value })} />
+                            <input type="text" className="w-full border rounded p-2" value={newDemands?.reasonForDemand} onChange={(e) => setNewDemands({ ...newDemands, reasonForDemand: e.target.value })} />
                         </div>
                         <div>
                             <p>Kullanım Yeri:</p>
-                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, placeOfUse: e.target.value })} />
+                            <input type="text" className="w-full border rounded p-2" value={newDemands?.placeOfUse} onChange={(e) => setNewDemands({ ...newDemands, placeOfUse: e.target.value })} />
                         </div>
                         <div>
                             <p>Masraf Merkezi:</p>
-                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, costCenter: e.target.value })} />
+                            <input type="text" className="w-full border rounded p-2" value={newDemands?.costCenter} onChange={(e) => setNewDemands({ ...newDemands, costCenter: e.target.value })} />
                         </div>
                         <div>
                             <p>Proje Kodu:</p>
-                            <input type="text" className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, projectCode: e.target.value })} />
+                            <input type="text" className="w-full border rounded p-2" value={newDemands?.projectCode} onChange={(e) => setNewDemands({ ...newDemands, projectCode: e.target.value })} />
                         </div>
                         <div>
                             <p>Talep Durumu:</p>
-                            <label className="w-2/4 mr-5 ">
-                                <input type="radio" name="talepDurumu" value="acil" className="border rounded mt-3" /> Acil
-                            </label>
-                            <label className="w-2/4 mx-5">
-                                <input type="radio" name="talepDurumu" value="normal" className=" border rounded mt-3"
-                                /> Normal
-                            </label>
+                            <label className="w-2/4 mr-5">
+        <input
+            type="radio"
+            name="talepDurumu"
+            value="1"
+            className="border rounded mt-3"
+            checked={type === 1}
+            onChange={() => setType(1)}
+        />
+        Acil
+    </label>
+    <label className="w-2/4 mx-5">
+        <input
+            type="radio"
+            name="talepDurumu"
+            value="0"
+            className="border rounded mt-3"
+            checked={type === 0}
+            onChange={() => setType(0)}
+        />
+        Normal
+    </label>
                         </div>
                         <div>
                             <p>Açıklama:</p>
-                            <textarea className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, demandDescription: e.target.value })}></textarea>
+
+                            <textarea className="w-full border rounded p-2" value={newDemands?.demandDescription} onChange={(e) => setNewDemands({ ...newDemands, demandDescription: e.target.value })}></textarea>
                         </div>
                         <div>
                             <p>Not:</p>
-                            <textarea className="w-full border rounded p-2" onChange={(e) => setNewDemands({ ...newDemands, demandNote: e.target.value })}></textarea>
+                            <textarea className="w-full border rounded p-2" value={newDemands?.demandNote} onChange={(e) => setNewDemands({ ...newDemands, demandNote: e.target.value })}></textarea>
                         </div>
                     </div>
                 </div>
@@ -304,7 +322,7 @@ function LeadsCreate() {
                                 onChange={(e) => setNewMaterials({ ...newMaterials, unit: e.target.value })}
                             />
                         </div>
-                         <div>
+                        <div>
                             <p>Talep Edilen Temin Tarihi:</p>
                             <input
                                 type="datetime-local"
@@ -314,7 +332,7 @@ function LeadsCreate() {
                                     setNewMaterials({ ...newMaterials, demandProcurementDate: e.target.value })
                                 }
                             />
-                        </div> 
+                        </div>
                         <div>
                             <p>Açıklama / Ürün Kodu:</p>
                             <textarea
@@ -369,17 +387,11 @@ function LeadsCreate() {
 
                     </table>
                 </div>
-                <div className="flex justify-center bg-green-600 text-white w-1/3 border rounded p-2 ml-2 mt-5">
-                <Link to="/app/leads" >
-                <button
-                //   asd
-                        onClick={addDemand}
-                    >
-                        Ekle
-                    </button>
-                </Link>
-         
+                <div className='text-center mt-4'>
+                    <button className="btn btn-block  bg-green-600 w-1/3 " onClick={addDemand}>Ekle</button>
                 </div>
+
+
 
             </div>
         </TitleCard>
